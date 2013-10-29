@@ -656,7 +656,12 @@ For more information, please refer to [http://unlicense.org/].
 	</script>
 	<script type="text/javascript" src="js/pgm.js" charset="utf-8"></script>
 	<script type="text/javascript" src="js/jq_pgm.js" charset="utf-8"></script>
-	
+
+	<!-- #GBGA ----------------------------------------------------------------------------->
+	<link rel="stylesheet" type="text/css" href="gbga/styles.css">
+	<script type="text/javascript" src="gbga/jq.js" charset="utf-8"></script>
+	<!-- #GBGA END ------------------------------------------------------------------------->
+
 	<title>LWT :: <?php echo $titletext; ?></title>
 </head>
 <body>

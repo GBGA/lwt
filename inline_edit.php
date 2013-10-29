@@ -61,10 +61,18 @@ if (substr($id, 0, 5) == "roman") {
 		convert_string_to_sqlsyntax(repl_tab_nl($value)) . ' where WoID = ' . $id,
 		"");
 	$value = get_first_value("select WoRomanization as value from " . $tbpref . "words where WoID = " . $id);
+
+	//-- #GBGA END ---------------------------------------------------------------------------
+	/* #ORIG:
 	if ($value == '') 
 		echo '*';
 	else 
 		echo $value;
+	*/
+	// #NEW:
+	echo $value;
+	//-- #GBGA END ---------------------------------------------------------------------------
+	
 	exit;
 }
 

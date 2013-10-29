@@ -689,9 +689,9 @@ while ($record = mysql_fetch_assoc($res)) {
 	echo "<td class='td1'><span" . ($record['LgRightToLeft'] ? ' dir="rtl" ' : '') . '>' . $h_text . '</span></td>';
 	
 	if ($currentIPA) 
-		echo '<td class="td1 ">' . ($record['WoRomanization'] != '' ? (' <span id="roman' . $record['WoID'] . '" class="edit_area clickedit">' . tohtml(repl_tab_nl($record['WoRomanization'])) . '</span>') : (' <span id="roman' . $record['WoID'] . '" class="edit_area clickedit">*</span>')) . '</td>';
+		echo '<td class="td1 ">' . ($record['WoRomanization'] != '' ? (' <span id="roman' . $record['WoID'] . '" class="edit_area_1row clickedit">' . tohtml(repl_tab_nl($record['WoRomanization'])) . '</span>') : (' <span id="roman' . $record['WoID'] . '" class="edit_area_1row clickedit">*</span>')) . '</td>';
 
-	echo "<td class='td1'><span id='trans{$record['WoID']}' class='edit_area clickedit'>" . tohtml(repl_tab_nl($record['WoTranslation'])) . "</span></td>";
+	echo "<td class='td1'><span id='trans{$record['WoID']}' class='edit_area_1row clickedit'>" . tohtml(repl_tab_nl($record['WoTranslation'])) . "</span></td>";
 	echo "<td class='td1 center'><span class='smallgray2'>" . tohtml(str_replace('[', '', str_replace(']', '', $record['taglist']))) . '</span></td>';
 	//-- #GBGA END ---------------------------------------------------------------------------
 	
