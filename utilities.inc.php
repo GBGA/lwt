@@ -658,8 +658,8 @@ For more information, please refer to [http://unlicense.org/].
 	<script type="text/javascript" src="js/jq_pgm.js" charset="utf-8"></script>
 
 	<!-- #GBGA ----------------------------------------------------------------------------->
-	<link rel="stylesheet" type="text/css" href="gbga/styles.css">
-	<script type="text/javascript" src="gbga/jq.js" charset="utf-8"></script>
+	<link rel="stylesheet" type="text/css" href="gbga/css/styles.css">
+	<script type="text/javascript" src="gbga/js/jq.js" charset="utf-8"></script>
 	<!-- #GBGA END ------------------------------------------------------------------------->
 
 	<title>LWT :: <?php echo $titletext; ?></title>

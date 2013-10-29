@@ -1,0 +1,13 @@
+.edit_area_1row {
+	width:100%;
+	display:block;
+}
+
+.btn_no_audio {
+	background-color: white;
+}
+
+.btn_audio {
+	background-color: lightgreen;
+}
+

@@ -68,6 +68,7 @@ $currenttag2 = validateTag(processSessParam("tag2","currentwordtag2",'',0),$curr
 $currenttag12 = processSessParam("tag12","currentwordtag12",'',0);
 
 //-- #GBGA -------------------------------------------------------------------------------
+require_once( 'gbga/functions.inc.php' );
 $currentIPA   = processDBParam("ipa", 'currentIPA', '1', 1);
 //-- #GBGA END ---------------------------------------------------------------------------
 
@@ -628,8 +629,9 @@ Multi Actions <img src="icn/lightning.png" title="Multi Actions" alt="Multi Acti
 <th class="th1 clickable">Translation [Tags]<br /><span id="waitinfo">Please <img src="icn/waiting2.gif" /> wait ...</span></th>
 -->
 <!-- #NEW:  | Term | [IPA] | Trans | Tag | -->
+<?php if ($currentlang) echo "<th class='th1 clickable'></th>"; ?>
 <th class="th1 clickable">Term</th>
-<?php if ($currentIPA) echo "<th class='th1 clickable'>IPA</th>"; ?>
+<?php if ($currentIPA)  echo "<th class='th1 clickable'>IPA</th>"; ?>
 <th class="th1 clickable">Translation<span id="waitinfo">Please <img src="icn/waiting2.gif" /> wait ...</span></th>
 <th class="th1 clickable">Tag</th>
 <!-- #GBGA END ------------------------------------------------------------------------->
@@ -686,6 +688,21 @@ while ($record = mysql_fetch_assoc($res)) {
 	*/
 	// NEW:  | Term | [IPA] | Trans | Tag |
 	$h_text = tohtml($record['WoText']);
+	
+	if ($currentlang) {
+		$lng  = GetLanguageInitials($currentlang);
+		$audio_path = "media/words/{$lng}/{$h_text}.mp3";
+		
+		echo "<td class='td1 center'>";
+		if (is_file($audio_path)) {
+			echo "<input class='btn_audio' type='button' value='' onclick='download_and_play(\"{$audio_path}\", \"\", \"\");'>";
+		} else {
+			$wid = $record['WoID'];
+			echo "<input id='btn_audio_{$wid}' class='btn_no_audio' type='button' value='' onclick='download_and_play(\"{$audio_path}\", \"{$lng}\", \"{$h_text}\", this.id);'>";
+		}
+		echo "</td>";
+	}	
+	
 	echo "<td class='td1'><span" . ($record['LgRightToLeft'] ? ' dir="rtl" ' : '') . '>' . $h_text . '</span></td>';
 	
 	if ($currentIPA) 
@@ -741,4 +758,10 @@ pageend();
 echo "<input type='checkbox' name='ipa'   value=" . ($currentIPA   ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&ipa="   . ($currentIPA   ? "0" : "1") . "\";'>Show IPA</input>\n";
 ?>
 </form>
+
+<audio id='audio_player' width=200 height=200>
+	<source id='audio_mp3' src='empty.mp3' type='audio/mpeg'>
+	Your browser does not support the audio element.
+</audio>
+	
 <!-- #GBGA END ------------------------------------------------------------------------->
