@@ -67,6 +67,10 @@ $currenttag1 = validateTag(processSessParam("tag1","currentwordtag1",'',0),$curr
 $currenttag2 = validateTag(processSessParam("tag2","currentwordtag2",'',0),$currentlang);
 $currenttag12 = processSessParam("tag12","currentwordtag12",'',0);
 
+//-- #GBGA -------------------------------------------------------------------------------
+$currentIPA   = processDBParam("ipa", 'currentIPA', '1', 1);
+//-- #GBGA END ---------------------------------------------------------------------------
+
 $wh_lang = ($currentlang != '') ? (' and WoLgID=' . $currentlang ) : '';
 $wh_stat = ($currentstatus != '') ? (' and ' . makeStatusCondition('WoStatus', $currentstatus)) : '';
 $wh_query = convert_string_to_sqlsyntax(str_replace("*","%",mb_strtolower($currentquery, 'UTF-8')));
@@ -617,8 +621,19 @@ Multi Actions <img src="icn/lightning.png" title="Multi Actions" alt="Multi Acti
 <th class="th1 sorttable_nosort">Mark</th>
 <th class="th1 sorttable_nosort">Act.</th>
 <?php if ($currentlang == '') echo '<th class="th1 clickable">Lang.</th>'; ?>
+
+<!-- #GBGA ----------------------------------------------------------------------------->
+<!-- #ORIG: | Term/Rom | Trans/Tag |
 <th class="th1 clickable">Term /<br />Romanization</th>
 <th class="th1 clickable">Translation [Tags]<br /><span id="waitinfo">Please <img src="icn/waiting2.gif" /> wait ...</span></th>
+-->
+<!-- #NEW:  | Term | [IPA] | Trans | Tag | -->
+<th class="th1 clickable">Term</th>
+<?php if ($currentIPA) echo "<th class='th1 clickable'>IPA</th>"; ?>
+<th class="th1 clickable">Translation<span id="waitinfo">Please <img src="icn/waiting2.gif" /> wait ...</span></th>
+<th class="th1 clickable">Tag</th>
+<!-- #GBGA END ------------------------------------------------------------------------->
+
 <th class="th1 sorttable_nosort">Se.<br />?</th>
 <th class="th1 sorttable_numeric clickable">Stat./<br />Days</th>
 <th class="th1 sorttable_numeric clickable">Score<br />%</th>
@@ -663,8 +678,23 @@ while ($record = mysql_fetch_assoc($res)) {
 	echo '<td class="td1 center"><a name="rec' . $record['WoID'] . '"><input name="marked[]" type="checkbox" class="markcheck" value="' . $record['WoID'] . '" ' . checkTest($record['WoID'], 'marked') . ' /></a></td>';
 	echo '<td class="td1 center" nowrap="nowrap">&nbsp;<a href="' . $_SERVER['PHP_SELF'] . '?chg=' . $record['WoID'] . '"><img src="icn/sticky-note--pencil.png" title="Edit" alt="Edit" /></a>&nbsp; <a href="' . $_SERVER['PHP_SELF'] . '?del=' . $record['WoID'] . '"><img src="icn/minus-button.png" title="Delete" alt="Delete" /></a>&nbsp;</td>';
 	if ($currentlang == '') echo '<td class="td1 center">' . tohtml($record['LgName']) . '</td>';
+
+	//-- #GBGA -------------------------------------------------------------------------------
+	/* ORIG: | Term/Rom | Trans/Tag |
 	echo '<td class="td1 "><span' . ($record['LgRightToLeft'] ? ' dir="rtl" ' : '') . '>' . tohtml($record['WoText']) . '</span>' . ($record['WoRomanization'] != '' ? (' / <span id="roman' . $record['WoID'] . '" class="edit_area clickedit">' . tohtml(repl_tab_nl($record['WoRomanization'])) . '</span>') : (' / <span id="roman' . $record['WoID'] . '" class="edit_area clickedit">*</span>')) . '</td>';
 	echo '<td class="td1"><span id="trans' . $record['WoID'] . '" class="edit_area clickedit">' . tohtml(repl_tab_nl($record['WoTranslation'])) . '</span> <span class="smallgray2">' . tohtml($record['taglist']) . '</span></td>';
+	*/
+	// NEW:  | Term | [IPA] | Trans | Tag |
+	$h_text = tohtml($record['WoText']);
+	echo "<td class='td1'><span" . ($record['LgRightToLeft'] ? ' dir="rtl" ' : '') . '>' . $h_text . '</span></td>';
+	
+	if ($currentIPA) 
+		echo '<td class="td1 ">' . ($record['WoRomanization'] != '' ? (' <span id="roman' . $record['WoID'] . '" class="edit_area clickedit">' . tohtml(repl_tab_nl($record['WoRomanization'])) . '</span>') : (' <span id="roman' . $record['WoID'] . '" class="edit_area clickedit">*</span>')) . '</td>';
+
+	echo "<td class='td1'><span id='trans{$record['WoID']}' class='edit_area clickedit'>" . tohtml(repl_tab_nl($record['WoTranslation'])) . "</span></td>";
+	echo "<td class='td1 center'><span class='smallgray2'>" . tohtml(str_replace('[', '', str_replace(']', '', $record['taglist']))) . '</span></td>';
+	//-- #GBGA END ---------------------------------------------------------------------------
+	
 	echo '<td class="td1 center"><b>' . ($record['SentOK']!=0 ? '<img src="icn/status.png" title="' . tohtml($record['WoSentence']) . '" alt="Yes" />' : '<img src="icn/status-busy.png" title="(No valid sentence)" alt="No" />') . '</b></td>';
 	echo '<td class="td1 center" title="' . tohtml(get_status_name($record['WoStatus'])) . '">' . tohtml(get_status_abbr($record['WoStatus'])) . ($record['WoStatus'] < 98 ? '/' . $days : '') . '</td>';
 	echo '<td class="td1 center" nowrap="nowrap">' . $score . '</td>';
@@ -704,3 +734,11 @@ $('#waitinfo').addClass('hide');
 pageend();
 
 ?>
+
+<!-- #GBGA ----------------------------------------------------------------------------->
+<form name="" action="#" onsubmit="document.form1.querybutton.click(); return false;">
+<?php
+echo "<input type='checkbox' name='ipa'   value=" . ($currentIPA   ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&ipa="   . ($currentIPA   ? "0" : "1") . "\";'>Show IPA</input>\n";
+?>
+</form>
+<!-- #GBGA END ------------------------------------------------------------------------->
