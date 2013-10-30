@@ -676,7 +676,17 @@ while ($record = mysql_fetch_assoc($res)) {
 	$score = $record['Score'];
 	if ( $score < 0 ) $score='<span class="scorered">0 <img src="icn/status-busy.png" title="Test today!" alt="Test today!" /></span>';
 	else $score='<span class="scoregreen">' . floor($score) . ($record['Score2'] < 0 ? ' <img src="icn/status-away.png" title="Test tomorrow!" alt="Test tomorrow!" />' : ' <img src="icn/status.png" title="-" alt="-" />') . '</span>';
+
+	//-- #GBGA -------------------------------------------------------------------------------
+	/* ORIG:
 	echo '<tr>';
+	*/
+	//NEW:
+	GetPropsFromTagList(explode(', ', str_replace('[', '', str_replace(']', '', $record['taglist']))), $tr_color);
+	echo "<tr class='tr' bgcolor='{$tr_color}'>\n";
+
+	//-- #GBGA END ---------------------------------------------------------------------------
+
 	echo '<td class="td1 center"><a name="rec' . $record['WoID'] . '"><input name="marked[]" type="checkbox" class="markcheck" value="' . $record['WoID'] . '" ' . checkTest($record['WoID'], 'marked') . ' /></a></td>';
 	echo '<td class="td1 center" nowrap="nowrap">&nbsp;<a href="' . $_SERVER['PHP_SELF'] . '?chg=' . $record['WoID'] . '"><img src="icn/sticky-note--pencil.png" title="Edit" alt="Edit" /></a>&nbsp; <a href="' . $_SERVER['PHP_SELF'] . '?del=' . $record['WoID'] . '"><img src="icn/minus-button.png" title="Delete" alt="Delete" /></a>&nbsp;</td>';
 	if ($currentlang == '') echo '<td class="td1 center">' . tohtml($record['LgName']) . '</td>';

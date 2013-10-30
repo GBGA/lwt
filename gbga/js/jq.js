@@ -43,3 +43,16 @@ function download_and_play(path, lang, text, th) {
 	}
 }
 
+function on_color_changed(id, value, color)
+{
+	color = (value == '') ? '' : '#' + String(color);
+	$.get('gbga/ajax_set_tag_props.php', { id: id, color: color }, function(data) {
+		if (data == 'OK') {
+			var iid = '#tagid_'+id;
+			$(iid).attr('bgcolor', color);
+		} else {
+			alert(data);
+		}
+	});
+}
+

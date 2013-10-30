@@ -50,6 +50,13 @@ require_once( 'connect.inc.php' );
 require_once( 'dbutils.inc.php' );
 require_once( 'utilities.inc.php' );
 
+//-- #GBGA -------------------------------------------------------------------------------
+require_once( 'gbga/functions.inc.php' );
+?>
+<script type="text/javascript" src="gbga/js/jscolor/jscolor.js"></script>
+<?php
+//-- #GBGA END ---------------------------------------------------------------------------
+
 $currentsort = processDBParam("sort",'currenttagsort','1',1);
 
 $currentpage = processSessParam("page","currenttagpage",'1',1);
@@ -280,6 +287,11 @@ Multi Actions <img src="icn/lightning.png" title="Multi Actions" alt="Multi Acti
 <th class="th1 sorttable_nosort">Actions</th>
 <th class="th1 clickable">Tag Text</th>
 <th class="th1 clickable">Tag Comment</th>
+
+<!-- #GBGA ----------------------------------------------------------------------------->
+<th class="th1 clickable">Color</th>
+<!-- #GBGA END ------------------------------------------------------------------------->
+
 <th class="th1 clickable">Terms With Tag</th>
 </tr>
 
@@ -290,11 +302,32 @@ if ($debug) echo $sql;
 $res = do_mysql_query($sql);
 while ($record = mysql_fetch_assoc($res)) {
 	$c = get_first_value('select count(*) as value from ' . $tbpref . 'wordtags where WtTgID=' . $record['TgID']);
+
+	//-- #GBGA -------------------------------------------------------------------------------
+	/* ORIG:
 	echo '<tr>';
+	*/
+	// NEW:
+	$id = $record['TgID'];
+	SplitTagCommentRaw($record['TgComment'], $comment, $props);
+	$comment = empty($comment) ? '-' : $comment;
+	$color = $props['color'];
+	echo "<tr id='tagid_{$id}' bgcolor='{$color}'>";
+	//-- #GBGA END ---------------------------------------------------------------------------
+
 	echo '<td class="td1 center"><a name="rec' . $record['TgID'] . '"><input name="marked[]" type="checkbox" class="markcheck" value="' . $record['TgID'] . '" ' . checkTest($record['TgID'], 'marked') . ' /></a></td>';
 	echo '<td class="td1 center" nowrap="nowrap">&nbsp;<a href="' . $_SERVER['PHP_SELF'] . '?chg=' . $record['TgID'] . '"><img src="icn/document--pencil.png" title="Edit" alt="Edit" /></a>&nbsp; <a href="' . $_SERVER['PHP_SELF'] . '?del=' . $record['TgID'] . '"><img src="icn/minus-button.png" title="Delete" alt="Delete" /></a>&nbsp;</td>';
 	echo '<td class="td1 center">' . tohtml($record['TgText']) . '</td>';
+	
+	//-- #GBGA -------------------------------------------------------------------------------
+	/* ORIG: | comment |
 	echo '<td class="td1 center">' . tohtml($record['TgComment']) . '</td>';
+	*/
+	// NEW:  | comment | color |
+	echo "<td class='td1 center'> {$comment} </td>";
+	echo "<td class='td1 center'> <input id='{$id}' class='color {hash:true,required:false}' value='{$color}' size=10 onchange='on_color_changed(this.id, this.value, this.color);' /> </td>\n";
+	//-- #GBGA END ---------------------------------------------------------------------------
+	
 	echo '<td class="td1 center">' . ($c > 0 ? '<a href="edit_words.php?page=1&amp;query=&amp;text=&amp;status=&amp;filterlang=&amp;status=&amp;tag12=0&amp;tag2=&amp;tag1=' . $record['TgID'] . '">' . $c . '</a>' : '0' ) . '</td>';
 	echo '</tr>';
 }
