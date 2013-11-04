@@ -30,7 +30,7 @@ function download_and_play(path, lang, text, th) {
 					audio.src = path;
 					player.load();
 					player.play();
-				} else if (!empty(data)) {
+				} else if (data != '') {
 					alert(data);
 				}
 			} 

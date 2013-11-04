@@ -29,6 +29,7 @@ $cmd  = "wget -q -U Mozilla -O \"../{$path}\" \"http://translate.google.com/tran
 exec($cmd, $array);
 
 if (!is_file("../$path")) {
+	echo "ERROR: file could not be downloaded '$path', check permisions";
 	return;
 }
 
