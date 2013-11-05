@@ -69,7 +69,15 @@ $currenttag12 = processSessParam("tag12","currentwordtag12",'',0);
 
 //-- #GBGA -------------------------------------------------------------------------------
 require_once( 'gbga/functions.inc.php' );
-$currentIPA   = processDBParam("ipa", 'currentIPA', '1', 1);
+$currentIPA   = processDBParam("ipa",   'currentIPA',   '1', 1);
+$currentwlist = processDBParam("wlist", 'currentwlist', '0', 1);
+$currentStat  = processDBParam("stat",  'currentStat',  '1', 1);
+$currentMode  = processDBParam("mode",  'currentMode',  '0', 1);
+$currentNotes = processDBParam("notes", 'currentNotes', '0', 1);
+$currentTest  = processDBParam("test",  'currentTest',  '0', 1);
+$prev_row_lock = NULL;
+$prev_row_nr   = NULL;
+$currentsort = $currentwlist ? -1 : $currentsort;
 //-- #GBGA END ---------------------------------------------------------------------------
 
 $wh_lang = ($currentlang != '') ? (' and WoLgID=' . $currentlang ) : '';
@@ -617,11 +625,41 @@ Multi Actions <img src="icn/lightning.png" title="Multi Actions" alt="Multi Acti
 <select name="markaction" id="markaction" disabled="disabled" onchange="multiActionGo(document.form2, document.form2.markaction);"><?php echo get_multiplewordsactions_selectoptions(); ?></select>
 </td></tr></table>
 
+
+<!-- #GBGA ----------------------------------------------------------------------------->
+<!-- #ORIG: TABLE
 <table class="sortable tab1"  cellspacing="0" cellpadding="5">
+<!-- #NEW: -->
+<table class="sortable tab1"  cellspacing="0" cellpadding="<?php echo $currentwlist ? '1' : '5';?>">
+<!-- #GBGA END ------------------------------------------------------------------------->
+
+
 <tr>
+
+
+<!-- #GBGA ----------------------------------------------------------------------------->
+<!-- #ORIG: | Mark | Act |
 <th class="th1 sorttable_nosort">Mark</th>
 <th class="th1 sorttable_nosort">Act.</th>
+<!-- #NEW:  | [Mark] | [Act] | -->
+<?php 
+if (!$currentwlist || $currentMode) {
+	echo "<th class='th1 sorttable_nosort'></th>\n";
+	echo "<th class='th1 sorttable_nosort'>Act.</th>\n";
+}
+ ?>
+<!-- #GBGA END ------------------------------------------------------------------------->
+
+
 <?php if ($currentlang == '') echo '<th class="th1 clickable">Lang.</th>'; ?>
+
+
+
+<!-- #GBGA # --------------------------------------------------------------------------->
+<!-- #NEW:  | # | -->
+<th class="th1 sorttable_numeric clickable" align="right">#</th>
+<!-- #GBGA END ------------------------------------------------------------------------->
+
 
 <!-- #GBGA ----------------------------------------------------------------------------->
 <!-- #ORIG: | Term/Rom | Trans/Tag |
@@ -636,9 +674,26 @@ Multi Actions <img src="icn/lightning.png" title="Multi Actions" alt="Multi Acti
 <th class="th1 clickable">Tag</th>
 <!-- #GBGA END ------------------------------------------------------------------------->
 
+
+<!-- #GBGA ----------------------------------------------------------------------------->
+<!-- #ORIG: | Se | Stat | Score |
 <th class="th1 sorttable_nosort">Se.<br />?</th>
 <th class="th1 sorttable_numeric clickable">Stat./<br />Days</th>
 <th class="th1 sorttable_numeric clickable">Score<br />%</th>
+-->
+<!-- #NEW:  | [Se] | [Stat] | [Score] | -->
+<th class="th1 sorttable_nosort">Se</th>
+<?php
+if (!$currentwlist || $currentStat) {
+	echo "<th class='th1 sorttable_numeric clickable'>Stat./<br />Days</th>\n";
+	echo "<th class='th1 sorttable_numeric clickable'>Score<br />%</th>\n";
+}
+if ($currentwlist && $currentNotes) {
+	echo "<th class='th1 clickable'>Note</th>\n";
+	echo "<th class='th1 clickable'>Note2</th>\n";
+}
+?>
+<!-- #GBGA END ------------------------------------------------------------------------->
 
 <?php
 	if ($currentsort == 6) {
@@ -660,17 +715,70 @@ if ($currentsort == 6) {
 	if ($currenttext != '') $sql .= 'and TiTxID = ' . $currenttext . ' ';
 	$sql .= $wh_lang . $wh_stat .  $wh_query . ' group by WoID ' . $wh_tag . ' order by ' . $sorts[$currentsort-1] . ' ' . $limit;
 } else {
+
+
+	//-- #GBGA -------------------------------------------------------------------------------
+	/*   #ORIG:
 	if ($currenttext == '') {
 		$sql = 'select WoID, WoText, WoTranslation, WoRomanization, WoSentence, ifnull(WoSentence,\'\') like concat(\'%{\',WoText,\'}%\') as SentOK, WoStatus, LgName, LgRightToLeft, DATEDIFF( NOW( ) , WoStatusChanged ) AS Days, WoTodayScore AS Score, WoTomorrowScore AS Score2, ifnull(concat(\'[\',group_concat(distinct TgText order by TgText separator \', \'),\']\'),\'\') as taglist from ((' . $tbpref . 'words left JOIN ' . $tbpref . 'wordtags ON WoID = WtWoID) left join ' . $tbpref . 'tags on TgID = WtTgID), ' . $tbpref . 'languages where WoLgID = LgID ' . $wh_lang . $wh_stat .  $wh_query . ' group by WoID ' . $wh_tag . ' order by ' . $sorts[$currentsort-1] . ' ' . $limit;
 	} else {
 		$sql = 'select distinct WoID, WoText, WoTranslation, WoRomanization, WoSentence, ifnull(WoSentence,\'\') like \'%{%}%\' as SentOK, WoStatus, LgName, LgRightToLeft, DATEDIFF( NOW( ) , WoStatusChanged ) AS Days, WoTodayScore AS Score, WoTomorrowScore AS Score2, ifnull(concat(\'[\',group_concat(distinct TgText order by TgText separator \', \'),\']\'),\'\') as taglist from ((' . $tbpref . 'words left JOIN ' . $tbpref . 'wordtags ON WoID = WtWoID) left join ' . $tbpref . 'tags on TgID = WtTgID), ' . $tbpref . 'languages, ' . $tbpref . 'textitems where TiLgID = WoLgID and TiTextLC = WoTextLC and TiTxID = ' . $currenttext . ' and WoLgID = LgID ' . $wh_lang . $wh_stat . $wh_query . ' group by WoID ' . $wh_tag . ' order by ' . $sorts[$currentsort-1] . ' ' . $limit;
 	}
+	*/
+	//   #NEW:
+	if ($currentwlist) {
+		//$WORDS_OR_LIST = $tbpref . 'words right JOIN z_word_list ON WoID = ZwlWoID ';
+		$WORDS_OR_LIST = $tbpref . 'words left JOIN z_word_list ON WoTextLC = ZwlWoTextLC ';
+		$wh_stat       = " and (ZwlNR <> 0 or " . makeStatusCondition('WoStatus', 1) . ") ";
+		$ORDER1        = " coalesce(ZwlNR, ~0), ZwlNR, WoID";
+	} else {
+		//$WORDS_OR_LIST = $tbpref . 'words left JOIN z_word_list ON WoID = ZwlWoID ';
+		$WORDS_OR_LIST = $tbpref . 'words left JOIN z_word_list ON WoTextLC = ZwlWoTextLC ';
+		$ORDER1         = $sorts[$currentsort-1];
+	}
+	 
+	$fr_text = empty($currenttext) ? '' : ', textitems ';
+	$wh_text = empty($currenttext) ? '' : " and TiLgID = WoLgID and TiTextLC = WoTextLC and TiTxID = {$currenttext}";
+	 
+	$sql = 'select	distinct WoID,
+					WoText,
+					WoTranslation,
+					WoRomanization,
+					WoSentence, 
+					ifnull(WoSentence,\'\') like concat(\'%{\',WoText,\'}%\') as SentOK, 
+					WoStatus, LgName, LgRightToLeft, 
+					DATEDIFF( NOW( ) , WoStatusChanged ) AS Days, 
+					WoTodayScore AS Score, 
+					WoTomorrowScore AS Score2, 
+					ifnull(concat(\'[\',group_concat(distinct TgText order by TgText separator \', \'),\']\'),\'\') as taglist '
+					
+			. ', ZwlID '
+			. ', ZwlNR AS NR '
+			. ', ZwlLocked AS Locked '
+			. ', ZwlNote AS Note '
+			. ', ZwlNote2 AS Note2 '
+			. ', WoTextLC AS TextLC '
+					
+			. 'from ((' . $WORDS_OR_LIST . ' left JOIN ' . $tbpref . 'wordtags ON WoID = WtWoID) left join ' . $tbpref . 'tags on TgID = WtTgID), '
+					. $tbpref . 'languages'
+					. $fr_text
+			. ' where WoLgID = LgID ' . $wh_text . $wh_lang . $wh_stat .  $wh_query
+			
+			. ' group by WoID '. $wh_tag
+			. ' order by ' . $ORDER1 . ' '
+			. $limit;
+			
+	//echo "$sql";
+	//-- #GBGA END ---------------------------------------------------------------------------
+
+
 }
 
 if ($debug) echo $sql;
 flush();
 $res = do_mysql_query($sql);
 while ($record = mysql_fetch_assoc($res)) {
+	if ($record['Locked'] == '0000-00-00') $record['Locked'] = NULL;
 	$days = $record['Days'];
 	if ( $record['WoStatus'] > 5 ) $days="-";
 	$score = $record['Score'];
@@ -687,28 +795,53 @@ while ($record = mysql_fetch_assoc($res)) {
 
 	//-- #GBGA END ---------------------------------------------------------------------------
 
+	//-- #GBGA #------------------------------------------------------------------------------
+	// ORIG: | Mark | Act |
+	/*
 	echo '<td class="td1 center"><a name="rec' . $record['WoID'] . '"><input name="marked[]" type="checkbox" class="markcheck" value="' . $record['WoID'] . '" ' . checkTest($record['WoID'], 'marked') . ' /></a></td>';
 	echo '<td class="td1 center" nowrap="nowrap">&nbsp;<a href="' . $_SERVER['PHP_SELF'] . '?chg=' . $record['WoID'] . '"><img src="icn/sticky-note--pencil.png" title="Edit" alt="Edit" /></a>&nbsp; <a href="' . $_SERVER['PHP_SELF'] . '?del=' . $record['WoID'] . '"><img src="icn/minus-button.png" title="Delete" alt="Delete" /></a>&nbsp;</td>';
+	*/
+	// NEW:
+	if (!$currentwlist || $currentMode) {
+		echo '<td class="td1 center"><a name="rec' . $record['WoID'] . '"><input name="marked[]" type="checkbox" class="markcheck" value="' . $record['WoID'] . '" ' . checkTest($record['WoID'], 'marked') . ' /></a></td>';
+		echo '<td class="td1 center" nowrap="nowrap">&nbsp;<a href="' . $_SERVER['PHP_SELF'] . '?chg=' . $record['WoID'] . '"><img src="icn/sticky-note--pencil.png" title="Edit" alt="Edit" /></a>&nbsp; <a href="' . $_SERVER['PHP_SELF'] . '?del=' . $record['WoID'] . '"><img src="icn/minus-button.png" title="Delete" alt="Delete" /></a>&nbsp;</td>';
+	}
+	//-- #GBGA END ---------------------------------------------------------------------------
 	if ($currentlang == '') echo '<td class="td1 center">' . tohtml($record['LgName']) . '</td>';
+
+
+	//-- #GBGA #------------------------------------------------------------------------------
+	//NEW: | NR |
+	if (empty($record['NR'])) {
+		$j_text = str_replace("'", '@QUOTE1@', $record['TextLC']);
+		echo "<td class='td1' align='right'><font color='green'><span id='nr{$record['WoID']}' class='clickedit' onclick='add_word_to_list(\"{$j_text}\");' > + </span></font></td>";
+	} elseif ($record['Locked']) {
+		echo '<td class="td1" align="right"><b>' . $record['NR'] . '</b></td>';
+	} else {
+		echo '<td class="td1" align="right"><font color="blue"><span id="nr' . $record['ZwlID'] . '" class="edit_area_1row clickedit">' . $record['NR'] . '</span></font> </td>';
+	}
+	//-- #GBGA END ---------------------------------------------------------------------------
+
 
 	//-- #GBGA -------------------------------------------------------------------------------
 	/* ORIG: | Term/Rom | Trans/Tag |
 	echo '<td class="td1 "><span' . ($record['LgRightToLeft'] ? ' dir="rtl" ' : '') . '>' . tohtml($record['WoText']) . '</span>' . ($record['WoRomanization'] != '' ? (' / <span id="roman' . $record['WoID'] . '" class="edit_area clickedit">' . tohtml(repl_tab_nl($record['WoRomanization'])) . '</span>') : (' / <span id="roman' . $record['WoID'] . '" class="edit_area clickedit">*</span>')) . '</td>';
 	echo '<td class="td1"><span id="trans' . $record['WoID'] . '" class="edit_area clickedit">' . tohtml(repl_tab_nl($record['WoTranslation'])) . '</span> <span class="smallgray2">' . tohtml($record['taglist']) . '</span></td>';
 	*/
-	// NEW:  | Term | [IPA] | Trans | Tag |
+	// NEW:  | Audio | Term | [IPA] | Trans | Tag |
 	$h_text = tohtml($record['WoText']);
 	
 	if ($currentlang) {
 		$lng  = GetLanguageInitials($currentlang);
 		$audio_path = "media/words/{$lng}/{$h_text}.mp3";
-		
+		$j_text = str_replace("'", '@QUOTE1@', $h_text);
+
 		echo "<td class='td1 center'>";
 		if (is_file($audio_path)) {
 			echo "<input class='btn_audio' type='button' value='' onclick='download_and_play(\"{$audio_path}\", \"\", \"\");'>";
 		} else {
 			$wid = $record['WoID'];
-			echo "<input id='btn_audio_{$wid}' class='btn_no_audio' type='button' value='' onclick='download_and_play(\"{$audio_path}\", \"{$lng}\", \"{$h_text}\", this.id);'>";
+			echo "<input id='btn_audio_{$wid}' class='btn_no_audio' type='button' value='' onclick='download_and_play(\"{$audio_path}\", \"{$lng}\", \"{$j_text}\", this.id);'>";
 		}
 		echo "</td>";
 	}	
@@ -722,9 +855,29 @@ while ($record = mysql_fetch_assoc($res)) {
 	echo "<td class='td1 center'><span class='smallgray2'>" . tohtml(str_replace('[', '', str_replace(']', '', $record['taglist']))) . '</span></td>';
 	//-- #GBGA END ---------------------------------------------------------------------------
 	
+
 	echo '<td class="td1 center"><b>' . ($record['SentOK']!=0 ? '<img src="icn/status.png" title="' . tohtml($record['WoSentence']) . '" alt="Yes" />' : '<img src="icn/status-busy.png" title="(No valid sentence)" alt="No" />') . '</b></td>';
+
+
+	//-- #GBGA -------------------------------------------------------------------------------
+	/* ORIG: | [Se] | [stat] | [score] | 
 	echo '<td class="td1 center" title="' . tohtml(get_status_name($record['WoStatus'])) . '">' . tohtml(get_status_abbr($record['WoStatus'])) . ($record['WoStatus'] < 98 ? '/' . $days : '') . '</td>';
 	echo '<td class="td1 center" nowrap="nowrap">' . $score . '</td>';
+	*/
+	// NEW:  | [Se] | [stat] | [score] | 
+	
+	if (!$currentwlist || $currentStat) {
+		echo '<td class="td1 center" title="' . tohtml(get_status_name($record['WoStatus'])) . '">' . tohtml(get_status_abbr($record['WoStatus'])) . ($record['WoStatus'] < 98 ? '/' . $days : '') . '</td>';
+		echo '<td class="td1 center" nowrap="nowrap">' . $score . '</td>';
+	}
+	
+	if ($currentwlist && $currentNotes) {
+		echo "<td class='td1'><span class='edit_area_1row clickedit smallgray2' id='word_note{$record['ZwlID']}' >" . (empty($record['Note'])  ? '' : tohtml(repl_tab_nl($record['Note'])))  . '</span> </td>';
+		echo "<td class='td1'><span class='edit_area_1row clickedit smallgray2' id='word_nt2_{$record['ZwlID']}' >" . (empty($record['Note2']) ? '' : tohtml(repl_tab_nl($record['Note2']))) . '</span> </td>';
+	}
+	//-- #GBGA END ---------------------------------------------------------------------------
+
+
 	if ($currentsort == 6) {
 		echo '<td class="td1 center" nowrap="nowrap">' . $record['textswordcount'] . '</td>';
 	}
@@ -766,6 +919,16 @@ pageend();
 <form name="" action="#" onsubmit="document.form1.querybutton.click(); return false;">
 <?php
 echo "<input type='checkbox' name='ipa'   value=" . ($currentIPA   ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&ipa="   . ($currentIPA   ? "0" : "1") . "\";'>Show IPA</input>\n";
+echo "<br />\n";
+echo "<input type='checkbox' name='wlist' value=" . ($currentwlist ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&wlist=" . ($currentwlist ? "0" : "1") . "\";'>Word-list</input>\n";
+if($currentwlist) {
+	echo "<input type='checkbox' name='mode'  value=" . ($currentMode  ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&mode="  . ($currentMode  ? "0" : "1") . "\";'>Edit-mode</input>\n";
+	echo "<input type='checkbox' name='stat'  value=" . ($currentStat  ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&stat="  . ($currentStat  ? "0" : "1") . "\";'>Show stat.</input>\n";
+	echo "<input type='checkbox' name='notes' value=" . ($currentNotes ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&notes=" . ($currentNotes ? "0" : "1") . "\";'>Show notes</input>\n";
+	echo "<input type='checkbox' name='test'  value=" . ($currentTest  ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&test="  . ($currentTest  ? "0" : "1") . "\";'>Test</input>\n";
+	echo "<input type='button' value='Re-arrange unlocked words' onclick='{location.href=\"gbga/word_sort.php\";}' />";
+	echo "<input type='button' value='Lock words' onclick='{location.href=\"gbga/word_lock.php\";}' />";
+}
 ?>
 </form>
 

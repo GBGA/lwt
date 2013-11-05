@@ -3209,6 +3209,11 @@ function check_update_db() {
 		reparse_all_texts();
 	}
 	
+	//-- #GBGA -----------------------------------------------------------------------------
+	require_once('gbga/init.php');
+	init_tables($tables);
+	//-- #GBGA END -------------------------------------------------------------------------
+
 	// DB Version
 	
 	$currversion = get_version_number();

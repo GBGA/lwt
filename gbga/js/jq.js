@@ -56,3 +56,20 @@ function on_color_changed(id, value, color)
 	});
 }
 
+function add_word_to_list(word_lc) {
+	//if (word=='') $('#editimprtextdata').html('<img src="icn/waiting2.gif" />');
+	
+	//alert(word_lc);
+	//var textid = $('#editimprtextdata').attr('data_id');
+	$.post('gbga/ajax_add_word_to_list.php', { word_lc: word_lc }, 
+		function(data) {
+			if (data)
+				alert(data);
+			window.location.reload();
+			//eval(data);
+			//$.scrollTo(pagepos); 
+			//$('input.impr-ann-text').change(changeImprAnnText);
+			//$('input.impr-ann-radio').change(changeImprAnnRadio);
+		} 
+	);
+}

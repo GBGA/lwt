@@ -3,6 +3,8 @@ $lang = $_REQUEST['lang'];
 $text = $_REQUEST['text'];
 $path = $_REQUEST['path'];
 
+$text = str_replace('@QUOTE1@', "'", $text);
+
 if (!is_dir($path)) {
 	//new php
 	@mkdir($dir, 0777, true);
@@ -26,7 +28,7 @@ if (!is_dir($path)) {
 
 $cmd  = "wget -q -U Mozilla -O \"../{$path}\" \"http://translate.google.com/translate_tts?ie=UTF-8&tl={$lang}&q={$text}\"";
 
-exec($cmd, $array);
+echo exec($cmd, $array);
 
 if (!is_file("../$path")) {
 	echo "ERROR: file could not be downloaded '$path', check permisions";
