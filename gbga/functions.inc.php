@@ -1,10 +1,18 @@
 <?php
+require_once("langdefs.inc.php");
 
-function GetLanguageInitials($lang_id) {
+function GetLanguageInitialsByID($lang_id) {
 	$gtr = get_first_value("select LgGoogleTranslateURI as value from languages where LgID = " . $lang_id);
 	$t1  = explode('&sl=', $gtr);
 	$t2  = explode('&', $t1[1]);
-	return $t2[0];
+	$lng = $t2[0];
+	return $lng;
+}
+
+function GetLanguageInitialsByName($lang_name) {
+	global $langDefs;
+	$lng = $langDefs[$lang_name][0];
+	return $lng;
 }
 
 function SplitTagCommentRaw($tag_comment_raw, &$comment, &$props) {

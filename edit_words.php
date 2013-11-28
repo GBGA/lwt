@@ -832,7 +832,8 @@ while ($record = mysql_fetch_assoc($res)) {
 	$h_text = tohtml($record['WoText']);
 	
 	if ($currentlang) {
-		$lng  = GetLanguageInitials($currentlang);
+		//$lng  = GetLanguageInitialsByID($currentlang);
+		$lng  = GetLanguageInitialsByName($record['LgName']);
 		$audio_path = "media/words/{$lng}/{$h_text}.mp3";
 		$j_text = str_replace("'", '@QUOTE1@', $h_text);
 
