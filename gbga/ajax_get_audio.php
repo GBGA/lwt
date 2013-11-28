@@ -4,6 +4,7 @@ $text = $_REQUEST['text'];
 $path = $_REQUEST['path'];
 
 $text = str_replace('@QUOTE1@', "'", $text);
+$path = str_replace('@QUOTE1@', "'", $path);
 
 if (!is_dir($path)) {
 	//new php

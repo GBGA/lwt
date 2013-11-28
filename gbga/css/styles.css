@@ -8,9 +8,36 @@
 }
 
 .btn_audio {
-	background-color: lightgreen;
+	background-color: green;
 }
 
 .tr:hover {
 	opacity: 0.85;
+}
+
+.tr_unlocked {
+	_opacity:0.8;
+}
+
+.tr_nonr {
+	opacity:0.5;
+}
+
+.tr_splitter td {
+	border-top: 3px solid black;
+}
+
+.tr_test {
+	background-color: #FFFFFF;
+}
+
+.tr_test span {
+	visibility:hidden;
+}
+
+.tr_test:hover {
+}
+
+.tr_test:hover span {
+	visibility:visible;
 }

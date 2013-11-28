@@ -77,7 +77,6 @@ $currentNotes = processDBParam("notes", 'currentNotes', '0', 1);
 $currentTest  = processDBParam("test",  'currentTest',  '0', 1);
 $prev_row_lock = NULL;
 $prev_row_nr   = NULL;
-$currentsort = $currentwlist ? -1 : $currentsort;
 //-- #GBGA END ---------------------------------------------------------------------------
 
 $wh_lang = ($currentlang != '') ? (' and WoLgID=' . $currentlang ) : '';
@@ -835,14 +834,15 @@ while ($record = mysql_fetch_assoc($res)) {
 		//$lng  = GetLanguageInitialsByID($currentlang);
 		$lng  = GetLanguageInitialsByName($record['LgName']);
 		$audio_path = "media/words/{$lng}/{$h_text}.mp3";
+		$j_audio_path = str_replace("'", '@QUOTE1@', $audio_path);
 		$j_text = str_replace("'", '@QUOTE1@', $h_text);
 
 		echo "<td class='td1 center'>";
 		if (is_file($audio_path)) {
-			echo "<input class='btn_audio' type='button' value='' onclick='download_and_play(\"{$audio_path}\", \"\", \"\");'>";
+			echo "<input class='btn_audio' type='button' value='' onclick='{download_and_play(\"" . $j_audio_path . "\", \"\", \"\");}'>";
 		} else {
 			$wid = $record['WoID'];
-			echo "<input id='btn_audio_{$wid}' class='btn_no_audio' type='button' value='' onclick='download_and_play(\"{$audio_path}\", \"{$lng}\", \"{$j_text}\", this.id);'>";
+			echo "<input id='btn_audio_{$wid}' class='btn_no_audio' type='button' value='' onclick='download_and_play(\"" . $j_audio_path . "\", \"{$lng}\", \"{$j_text}\", this.id);'>";
 		}
 		echo "</td>";
 	}	

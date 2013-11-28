@@ -16,6 +16,8 @@ $(document).ready( function() {
 } ); 
 
 function download_and_play(path, lang, text, th) {
+	path = path.replace("@QUOTE1@", "'");
+
 	var player = document.getElementById('audio_player');
 	player.pause();
 
