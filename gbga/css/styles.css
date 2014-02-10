@@ -41,3 +41,7 @@
 .tr_test:hover span {
 	visibility:visible;
 }
+
+.text_link {
+	color: black !important;
+}
