@@ -773,6 +773,10 @@ if ($currentsort == 6) {
 
 }
 
+//-- #GBGA -------------------------------------------------------------------------------
+$prev_locked = NULL;
+//-- #GBGA END ---------------------------------------------------------------------------
+
 if ($debug) echo $sql;
 flush();
 $res = do_mysql_query($sql);
@@ -789,8 +793,19 @@ while ($record = mysql_fetch_assoc($res)) {
 	echo '<tr>';
 	*/
 	//NEW:
+	$class_splitter = "";//(isset($prev_locked) && $prev_locked != $record['Locked']) ? " tr_splitter_day" : "";
+	$prev_locked    = $record['Locked'];
+	
+	if (isset($prev_locked) && empty($class_splitter) && isset($record['NR'])) {
+		if (1 == $record['NR'] % 10) {
+			$class_splitter = " tr_splitter_10";
+		} elseif (1 == $record['NR'] % 5) {
+			$class_splitter = " tr_splitter_5";
+		}
+	}
+	
 	GetPropsFromTagList(explode(', ', str_replace('[', '', str_replace(']', '', $record['taglist']))), $tr_color);
-	echo "<tr class='tr' bgcolor='{$tr_color}'>\n";
+	echo "<tr class='tr $class_splitter' bgcolor='{$tr_color}'>\n";
 
 	//-- #GBGA END ---------------------------------------------------------------------------
 
