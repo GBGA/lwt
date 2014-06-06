@@ -23,13 +23,7 @@
 	opacity:0.5;
 }
 
-.tr_splitter_5 td {
-	border-top: 1px solid black;
-}
-.tr_splitter_10 td {
-	border-top: 2px solid black;
-}
-.tr_splitter_day td {
+.tr_splitter td {
 	border-top: 3px solid black;
 }
 
@@ -46,8 +40,4 @@
 
 .tr_test:hover span {
 	visibility:visible;
-}
-
-.text_link {
-	color: black !important;
 }
