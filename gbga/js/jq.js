@@ -18,8 +18,12 @@ $(document).ready( function() {
 function download_and_play(path, lang, text, th) {
 	path = path.replace("@QUOTE1@", "'");
 
-	var player = document.getElementById('audio_player');
-	player.pause();
+	//var player = document.getElementById('audio_player');
+	var player = $('#audio_player');
+	player[0].pause();
+
+	var audio = document.getElementById('audio_mp3');
+	audio.src = path;
 
 	if (lang != '') {
 		$.post('gbga/ajax_get_audio.php', { lang: lang, text: text, path: path }, 
@@ -30,8 +34,8 @@ function download_and_play(path, lang, text, th) {
 
 					var audio = document.getElementById('audio_mp3');
 					audio.src = path;
-					player.load();
-					player.play();
+					player[0].load();
+					player[0].play();
 				} else if (data != '') {
 					alert(data);
 				}
@@ -40,8 +44,8 @@ function download_and_play(path, lang, text, th) {
 	} else {
 		var audio = document.getElementById('audio_mp3');
 		audio.src = path;
-		player.load();
-		player.play();
+		player[0].load();
+		player[0].play();
 	}
 }
 

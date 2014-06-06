@@ -60,8 +60,34 @@ function limit20(&$item, $key) {
 
 function savetag($item, $key, $wid) {
 	global $tbpref;
+	
+
+	//-- #GBGA -------------------------------------------------------------------------------
+	/*
 	runsql('insert into ' . $tbpref . 'tags (TgText) values(' . convert_string_to_sqlsyntax($item) . ')', "");
 	runsql('insert into ' . $tbpref . 'wordtags (WtWoID, WtTgID) select ' . $wid . ', TgID from ' . $tbpref . 'tags where TgText = ' . convert_string_to_sqlsyntax($item), "");
+	*/
+	//NEW:
+	
+	$res = do_mysql_query("select TgID from tags where TgText = " . convert_string_to_sqlsyntax($item));
+	if ($res) {
+		$record = mysql_fetch_assoc($res);
+		$tag_id = $record['TgID'];
+		//echo "EXIST: $tag_id";
+	} else {
+		//$tag_id = runsql('insert into ' . $tbpref . 'tags (TgText) values(' . convert_string_to_sqlsyntax($item) . ')', "");
+		//echo "NEW: $tag_id";
+		//$res = do_mysql_query("select TgID from tags where TgText = " . convert_string_to_sqlsyntax($item));
+		//if ($res) {
+		//	$record = mysql_fetch_assoc($res);
+		//	$tag_id = $record['TgID'];
+		//}
+	}
+
+	if ($tag_id) {
+		runsql("insert into {$tbpref}wordtags (WtWoID, WtTgID) values ({$wid}, {$tag_id})", '');
+	}
+	//-- #GBGA END ---------------------------------------------------------------------------
 }
 
 pagestart('Import Terms',true);

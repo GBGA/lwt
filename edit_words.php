@@ -666,9 +666,9 @@ if (!$currentwlist || $currentMode) {
 <th class="th1 clickable">Translation [Tags]<br /><span id="waitinfo">Please <img src="icn/waiting2.gif" /> wait ...</span></th>
 -->
 <!-- #NEW:  | Term | [IPA] | Trans | Tag | -->
-<?php if ($currentlang) echo "<th class='th1 clickable'></th>"; ?>
+<?php if ($currentlang) echo "<th class='th1 sorttable_nosort'></th>"; ?>
 <th class="th1 clickable">Term</th>
-<?php if ($currentIPA)  echo "<th class='th1 clickable'>IPA</th>"; ?>
+<?php if ($currentIPA)  echo "<th class='th1 sorttable_nosort'>IPA</th>"; ?>
 <th class="th1 clickable">Translation<span id="waitinfo">Please <img src="icn/waiting2.gif" /> wait ...</span></th>
 <th class="th1 clickable">Tag</th>
 <!-- #GBGA END ------------------------------------------------------------------------->
@@ -688,8 +688,8 @@ if (!$currentwlist || $currentStat) {
 	echo "<th class='th1 sorttable_numeric clickable'>Score<br />%</th>\n";
 }
 if ($currentwlist && $currentNotes) {
-	echo "<th class='th1 clickable'>Note</th>\n";
-	echo "<th class='th1 clickable'>Note2</th>\n";
+	echo "<th class='th1 sorttable_nosort'>Note</th>\n";
+	echo "<th class='th1 sorttable_nosort'>Note2</th>\n";
 }
 ?>
 <!-- #GBGA END ------------------------------------------------------------------------->
@@ -729,7 +729,7 @@ if ($currentsort == 6) {
 		//$WORDS_OR_LIST = $tbpref . 'words right JOIN z_word_list ON WoID = ZwlWoID ';
 		$WORDS_OR_LIST = $tbpref . 'words left JOIN z_word_list ON WoTextLC = ZwlWoTextLC ';
 		$wh_stat       = " and (ZwlNR <> 0 or " . makeStatusCondition('WoStatus', 1) . ") ";
-		$ORDER1        = " coalesce(ZwlNR, ~0), ZwlNR, WoID";
+		$ORDER1        = " coalesce(NULLIF(ZwlLocked,'0000-00-00'), '9999-12-31'), coalesce(ZwlNR, ~0), WoID";
 	} else {
 		//$WORDS_OR_LIST = $tbpref . 'words left JOIN z_word_list ON WoID = ZwlWoID ';
 		$WORDS_OR_LIST = $tbpref . 'words left JOIN z_word_list ON WoTextLC = ZwlWoTextLC ';
@@ -773,6 +773,10 @@ if ($currentsort == 6) {
 
 }
 
+//-- #GBGA -------------------------------------------------------------------------------
+$prev_locked = NULL;
+//-- #GBGA END ---------------------------------------------------------------------------
+
 if ($debug) echo $sql;
 flush();
 $res = do_mysql_query($sql);
@@ -789,8 +793,26 @@ while ($record = mysql_fetch_assoc($res)) {
 	echo '<tr>';
 	*/
 	//NEW:
+	$class_splitter = (isset($prev_locked) && $prev_locked != $record['Locked']) ? " tr_splitter_day" : "";
+	$prev_locked    = $record['Locked'];
+	
+	if (isset($prev_locked) && empty($class_splitter) && isset($record['NR'])) {
+		if (1 == $record['NR'] % 10) {
+			$class_splitter = " tr_splitter_10";
+		} elseif (1 == $record['NR'] % 5) {
+			$class_splitter = " tr_splitter_5";
+		}
+	}
+	
+	if ($currentTest) {
+		$class_splitter .= " tr_test";
+	}
+	
 	GetPropsFromTagList(explode(', ', str_replace('[', '', str_replace(']', '', $record['taglist']))), $tr_color);
-	echo "<tr class='tr' bgcolor='{$tr_color}'>\n";
+
+	$wid = $record['WoID'];
+	$zid = $record['ZwlID'];
+	echo "<tr id='{$wid}' class='tr $class_splitter' bgcolor='{$tr_color}'>\n";
 
 	//-- #GBGA END ---------------------------------------------------------------------------
 
@@ -811,13 +833,15 @@ while ($record = mysql_fetch_assoc($res)) {
 
 	//-- #GBGA #------------------------------------------------------------------------------
 	//NEW: | NR |
+	$class = (!$currentMode || $currentTest) ? '' : 'edit_area_1row clickedit';
+	
 	if (empty($record['NR'])) {
 		$j_text = str_replace("'", '@QUOTE1@', $record['TextLC']);
-		echo "<td class='td1' align='right'><font color='green'><span id='nr{$record['WoID']}' class='clickedit' onclick='add_word_to_list(\"{$j_text}\");' > + </span></font></td>";
+		echo "<td tabindex='tab_nr_{$wid}' class='td1' align='right'><font color='green'><span id='nr{$record['WoID']}' class='clickedit' onclick='add_word_to_list(\"{$j_text}\");' > + </span></font></td>";
 	} elseif ($record['Locked']) {
-		echo '<td class="td1" align="right"><b>' . $record['NR'] . '</b></td>';
+		echo '<td tabindex="tab_nr_'.$wid.'" class="td1" align="right"><b>' . $record['NR'] . '</b></td>';
 	} else {
-		echo '<td class="td1" align="right"><font color="blue"><span id="nr' . $record['ZwlID'] . '" class="edit_area_1row clickedit">' . $record['NR'] . '</span></font> </td>';
+		echo '<td tabindex="tab_nr_'.$wid.'" class="td1" align="right"><font color="blue"><span id="nr' . $record['ZwlID'] . '" class="'.$class.'">' . $record['NR'] . '</span></font> </td>';
 	}
 	//-- #GBGA END ---------------------------------------------------------------------------
 
@@ -830,6 +854,7 @@ while ($record = mysql_fetch_assoc($res)) {
 	// NEW:  | Audio | Term | [IPA] | Trans | Tag |
 	$h_text = tohtml($record['WoText']);
 	
+	//AUDIO
 	if ($currentlang) {
 		//$lng  = GetLanguageInitialsByID($currentlang);
 		$lng  = GetLanguageInitialsByName($record['LgName']);
@@ -839,21 +864,25 @@ while ($record = mysql_fetch_assoc($res)) {
 
 		echo "<td class='td1 center'>";
 		if (is_file($audio_path)) {
-			echo "<input class='btn_audio' type='button' value='' onclick='{download_and_play(\"" . $j_audio_path . "\", \"\", \"\");}'>";
+			echo "<input id='btn_audio_{$wid}' class='btn_audio' type='button' value='' onclick='{download_and_play(\"" . $j_audio_path . "\", \"\", \"\");}'>";
 		} else {
-			$wid = $record['WoID'];
 			echo "<input id='btn_audio_{$wid}' class='btn_no_audio' type='button' value='' onclick='download_and_play(\"" . $j_audio_path . "\", \"{$lng}\", \"{$j_text}\", this.id);'>";
 		}
 		echo "</td>";
 	}	
 	
-	echo "<td class='td1'><span" . ($record['LgRightToLeft'] ? ' dir="rtl" ' : '') . '>' . $h_text . '</span></td>';
+	//WORD
+	echo "<td class='td1'  tabindex='tab_wrd_{$wid}'><span" . ($record['LgRightToLeft'] ? ' dir="rtl" ' : '') . '>' . $h_text . '</span></td>';
 	
+	//IPA
 	if ($currentIPA) 
 		echo '<td class="td1 ">' . ($record['WoRomanization'] != '' ? (' <span id="roman' . $record['WoID'] . '" class="edit_area_1row clickedit">' . tohtml(repl_tab_nl($record['WoRomanization'])) . '</span>') : (' <span id="roman' . $record['WoID'] . '" class="edit_area_1row clickedit">*</span>')) . '</td>';
 
-	echo "<td class='td1'><span id='trans{$record['WoID']}' class='edit_area_1row clickedit'>" . tohtml(repl_tab_nl($record['WoTranslation'])) . "</span></td>";
-	echo "<td class='td1 center'><span class='smallgray2'>" . tohtml(str_replace('[', '', str_replace(']', '', $record['taglist']))) . '</span></td>';
+	//TRANS
+	echo "<td class='td1' tabindex='tab_trn_{$wid}'><span id='trans{$record['WoID']}' class='{$class}'>" . tohtml(repl_tab_nl($record['WoTranslation'])) . "</span></td>";
+	
+	//TAG
+	echo "<td class='td1 center'><span id='tag" . $record['WoID'] . "' class='{$class} smallgray2'>" . tohtml(str_replace('[', '', str_replace(']', '', $record['taglist']))) . '</span></td>';
 	//-- #GBGA END ---------------------------------------------------------------------------
 	
 
@@ -867,14 +896,26 @@ while ($record = mysql_fetch_assoc($res)) {
 	*/
 	// NEW:  | [Se] | [stat] | [score] | 
 	
+	//STAT
 	if (!$currentwlist || $currentStat) {
 		echo '<td class="td1 center" title="' . tohtml(get_status_name($record['WoStatus'])) . '">' . tohtml(get_status_abbr($record['WoStatus'])) . ($record['WoStatus'] < 98 ? '/' . $days : '') . '</td>';
 		echo '<td class="td1 center" nowrap="nowrap">' . $score . '</td>';
 	}
 	
+	//NOTES
 	if ($currentwlist && $currentNotes) {
-		echo "<td class='td1'><span class='edit_area_1row clickedit smallgray2' id='word_note{$record['ZwlID']}' >" . (empty($record['Note'])  ? '' : tohtml(repl_tab_nl($record['Note'])))  . '</span> </td>';
-		echo "<td class='td1'><span class='edit_area_1row clickedit smallgray2' id='word_nt2_{$record['ZwlID']}' >" . (empty($record['Note2']) ? '' : tohtml(repl_tab_nl($record['Note2']))) . '</span> </td>';
+		$note1 = (empty($record['Note'])  ? '' : tohtml(repl_tab_nl($record['Note'])));
+		$note2 = '';
+		//$note2 = (empty($record['Note2']) ? '' : tohtml(repl_tab_nl($record['Note2'])));
+		if (empty($note2) && !empty($record['NR'])) {
+			$notes = file("media/notes/cic_lzn.txt");
+			$nr = intval($record['NR'])%200;
+			$note2 = $notes[$nr];
+		}
+		
+		echo "<td class='td1' tabindex='tab_nt1_{$wid}'><span class='{$class} smallgray2' id='word_note{$record['ZwlID']}' >" . $note1 . '</span> </td>';
+		//echo "<td class='td1'><span class='edit_area_1row clickedit smallgray2' id='word_nt2_{$record['ZwlID']}' >" . $note2 . '</span> </td>';
+		echo "<td class='td1' tabindex='tab_nt2_{$wid}'><span class='smallgray2' id='word_nt2_{$zid}' >" . $note2 . '</span> </td>';
 	}
 	//-- #GBGA END ---------------------------------------------------------------------------
 
@@ -923,12 +964,41 @@ echo "<input type='checkbox' name='ipa'   value=" . ($currentIPA   ? "1 checked"
 echo "<br />\n";
 echo "<input type='checkbox' name='wlist' value=" . ($currentwlist ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&wlist=" . ($currentwlist ? "0" : "1") . "\";'>Word-list</input>\n";
 if($currentwlist) {
+	echo "<hr>";
+	
+	echo "<div>";
+	
+/*	echo '<select name="sort" onchange="{val=document.form1.sort.options[document.form1.sort.selectedIndex].value; location.href='edit_words.php?page=1&amp;sort=' + val;}"><?php echo get_wordssort_selectoptions($currentsort); ?></select>';
+*/
+	echo	"<select name='group' onchange=''>" . 
+				"<option>cic_lzn</option>".
+				"<option>none</option>".
+			"</select>";
+	echo "</div>";
+
+	echo "<div>";
 	echo "<input type='checkbox' name='mode'  value=" . ($currentMode  ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&mode="  . ($currentMode  ? "0" : "1") . "\";'>Edit-mode</input>\n";
 	echo "<input type='checkbox' name='stat'  value=" . ($currentStat  ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&stat="  . ($currentStat  ? "0" : "1") . "\";'>Show stat.</input>\n";
 	echo "<input type='checkbox' name='notes' value=" . ($currentNotes ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&notes=" . ($currentNotes ? "0" : "1") . "\";'>Show notes</input>\n";
 	echo "<input type='checkbox' name='test'  value=" . ($currentTest  ? "1 checked" : "0") . " onchange='location.href=\"edit_words.php?page=1&test="  . ($currentTest  ? "0" : "1") . "\";'>Test</input>\n";
+	echo "</div>";
+	
+	echo "<div>";
 	echo "<input type='button' value='Re-arrange unlocked words' onclick='{location.href=\"gbga/word_sort.php\";}' />";
 	echo "<input type='button' value='Lock words' onclick='{location.href=\"gbga/word_lock.php\";}' />";
+	echo "<input type='button' value='Note2 from file' onclick='{location.href=\"gbga/word_note2.php\";}' />";
+	echo "</div>";
+	
+	echo "<hr>";
+	
+	echo "<div>";
+	echo "<input type='button' value='Print version' onclick='{location.href=\"gbga/word_print.php\";}' />";
+	echo "<input type='button' value='Offline version' onclick='{location.href=\"gbga/word_offline.php\";}' />";
+	echo "</div>";
+	
+	echo "<hr>";
+
+	echo "<script type='text/javascript' src='gbga/js/jq_navigate_table.js' charset='utf-8'></script>";
 }
 ?>
 </form>

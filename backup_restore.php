@@ -71,6 +71,11 @@ if (isset($_REQUEST['restore'])) {
 
 elseif (isset($_REQUEST['backup'])) {
 	$tables = array('archivedtexts', 'archtexttags', 'languages', 'sentences', 'settings', 'tags', 'tags2', 'textitems', 'texts', 'texttags', 'words', 'wordtags');
+	
+	//-- #GBGA -------------------------------------------------------------------------------
+	array_push($tables, 'z_word_list');
+	//-- #GBGA END ---------------------------------------------------------------------------
+	
 	$fname = "lwt-backup-" . $pref . date('Y-m-d-H-i-s') . ".sql.gz";
 	$out = "-- " . $fname . "\n";
 	foreach($tables as $table) { // foreach table
@@ -115,6 +120,9 @@ elseif (isset($_REQUEST['empty'])) {
 	$dummy = runsql('TRUNCATE ' . $tbpref . 'words','');
 	$dummy = runsql('TRUNCATE ' . $tbpref . 'wordtags', '');
 	$dummy = runsql('DELETE FROM ' . $tbpref . 'settings where StKey = \'currenttext\'', '');
+	//-- #GBGA -------------------------------------------------------------------------------
+	$dummy = runsql('TRUNCATE ' . $tbpref . 'z_word_list', '');
+	//-- #GBGA END ---------------------------------------------------------------------------
 	optimizedb();
 	get_tags($refresh = 1);
 	get_texttags($refresh = 1);

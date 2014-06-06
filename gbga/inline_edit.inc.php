@@ -47,4 +47,23 @@ if (substr($id, 0, 2) == "nr") {
 		exit;
 	}
 }
+
+if (substr($id, 0, 3) == "tag") {
+	$id = substr($id, 3);
+	
+	runsql('delete from ' . $tbpref . 'wordtags where WtWoID = ' . $id, "");
+	if (!empty($value)) {
+		addtaglist($value, '(' . $id . ')');
+	}
+		
+	$sql = "SELECT GROUP_CONCAT(TgText) AS value FROM "
+			. $tbpref . "wordtags LEFT JOIN " . $tbpref . "tags ON "
+			. $tbpref . "wordtags.WtTgID = " . $tbpref . "tags.TgID WHERE WtWoID=" . $id;
+		
+	$value = get_first_value($sql);
+	echo $value;
+	exit;
+}
+
+
 ?>
